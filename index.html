@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ceph space calculator</title>
+  </head>
+  <body>
+    <h1>Ceph space calculator</h1>
+    <p>Enter the size of each failure domain to calculate the amount of usage space in your pool.</p>
+    <form id="ceph-form">
+      <p>
+        Mode:
+        <input type="radio" name="mode" value="replicated" id="mode-replicated"checked >
+        <label for="mode-replicated">replicated</label>
+        <input type="radio" name="mode" value="erasure" id="mode-erasure">
+        <label for="mode-erasure">erasure-coded</label>
+      </p>
+      <p>
+        Size:
+        <span id="size-replicated">
+          <input type="number" name="size-replicated" min="1">
+        </span>
+        <span id="size-erasure" style="display: none;">
+          <input type="number" name="size-erasure" min="1"> + <input type="number" name="size-erasure-redundancy" min="1">
+        </span>
+      </p>
+      <p>Nodes or failure domains: <input type="number" name="number" min="2"></p>
+      <ul id="nodes">
+        <li>#1 capacity: <input type="number" step="0.01" min="0" value="1" onchange="computeResult()"></li>
+        <li>#2 capacity: <input type="number" step="0.01" min="0" value="1" onchange="computeResult()"></li>
+      </ul>
+      <p id="results"></p>
+    </form>
+    <script src="index.js"></script>
+  </body>
+</html>
