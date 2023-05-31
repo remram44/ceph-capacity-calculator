@@ -51,16 +51,16 @@ function getUsableStorage(nodes, replicas) {
 function computeResult() {
   try {
     // Get nodes as numbers
-    let nodes = [].map.call(
-      document.getElementById('nodes').children,
-      e => {
-        let v = parseInt(e.querySelector('input').value, 10);
-        if(isNaN(v)) {
-          throw new Error('Invalid capacity');
-        }
-        return v;
+    let nodes = cephForm.elements['nodes'].value;
+    nodes = nodes.split(/\s+/);
+    nodes = nodes.filter(e => e.length > 0);
+    nodes = nodes.map(e => {
+      let v = parseInt(e, 10);
+      if(isNaN(v)) {
+        throw new Error('Invalid capacity');
       }
-    );
+      return v;
+    });
 
     // Compute total raw (= not taking replication into account)
     let totalRaw = nodes.reduce((a, b) => a + b, 0);
@@ -118,33 +118,8 @@ function modeChanged() {
 [].forEach.call(cephForm.elements['mode'], e => e.addEventListener('change', modeChanged));
 modeChanged();
 
-function numberChanged() {
-  console.log('Number changed');
-
-  let newNumber = parseInt(cephForm.elements['number'].value, 10);
-  if(isNaN(newNumber)) {
-    return;
-  }
-
-  let nodes = document.getElementById('nodes');
-  let currentNumber = nodes.children.length;
-  if(currentNumber < newNumber) {
-    for(var i = currentNumber + 1; i <= newNumber; ++i) {
-      let child = document.createElement('li');
-      child.innerHTML = '#' + i + ' capacity: <input type="number" step="0.01" min="0" value="1" onchange="computeResult()">';
-      nodes.appendChild(child);
-    }
-    computeResult();
-  } else if(currentNumber > newNumber) {
-    for(var i = currentNumber; i > newNumber; --i) {
-      nodes.removeChild(nodes.children[nodes.children.length - 1]);
-    }
-    computeResult();
-  }
-}
-cephForm.elements['number'].addEventListener('change', numberChanged);
-numberChanged();
 cephForm.elements['size-replicated'].addEventListener('change', computeResult);
 cephForm.elements['size-erasure'].addEventListener('change', computeResult);
 cephForm.elements['size-erasure-redundancy'].addEventListener('change', computeResult);
+cephForm.elements['nodes'].addEventListener('change', computeResult);
 computeResult();

@@ -23,11 +23,11 @@
           <input type="number" name="size-erasure" min="1"> + <input type="number" name="size-erasure-redundancy" min="1">
         </span>
       </p>
-      <p>Nodes or failure domains: <input type="number" name="number" min="2"></p>
-      <ul id="nodes">
-        <li>#1 capacity: <input type="number" step="0.01" min="0" value="1" onchange="computeResult()"></li>
-        <li>#2 capacity: <input type="number" step="0.01" min="0" value="1" onchange="computeResult()"></li>
-      </ul>
+      <p>Size of each node or failure domain:</p>
+      <textarea name="nodes" rows="8" cols="10">18
+8
+8
+6</textarea>
       <p id="results"></p>
     </form>
     <script src="index.js"></script>
