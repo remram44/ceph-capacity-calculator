@@ -75,11 +75,10 @@ function computeResult() {
       let redundancy = replicas - 1;
 
       let result = getUsableStorage(nodes, replicas);
-      document.getElementById('results').innerText = (
-        'Maximum data stored: '
-        + 'logical: ' + (result / replicas)
-        + ', raw: ' + result
-        + ', ' + (100.0 * result / totalRaw) + '%'
+      document.getElementById('results').innerHTML = (
+        'Maximum data stored: ' + (result / replicas)
+        + '<br>raw: ' + result
+        + '<br>usage: ' + (100.0 * result / totalRaw) + '%'
       );
     } else {
       size = parseInt(cephForm.elements['size-erasure'].value, 10);
@@ -92,11 +91,10 @@ function computeResult() {
       }
 
       let result = getUsableStorage(nodes, size + redundancy);
-      document.getElementById('results').innerText = (
-        'Maximum data stored: '
-        + 'logical: ' + (result * size / (size + redundancy))
-        + ', raw: ' + result
-        + ', ' + (100.0 * result / totalRaw) + '%'
+      document.getElementById('results').innerHTML = (
+        'Maximum data stored: ' + (result * size / (size + redundancy))
+        + '<br>raw: ' + result
+        + '<br>usage: ' + (100.0 * result / totalRaw) + '%'
       );
     }
   } catch(error) {
