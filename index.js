@@ -144,31 +144,7 @@ function numberChanged() {
 }
 cephForm.elements['number'].addEventListener('change', numberChanged);
 numberChanged();
-
-function sizeChanged() {
-  console.log('Size changed');
-
-  // Need to have at least as many nodes as there are replicas
-  let replicas;
-  if(cephForm.elements['mode'].value === 'replicated') {
-    replicas = cephForm.elements['size-replicated'].value;
-  } else {
-    replicas = cephForm.elements['size-erasure'].value + cephForm.elements['size-erasure-redundancy'].value;
-  }
-  replicas = parseInt(replicas, 10);
-  if(isNaN(replicas)) {
-    return;
-  }
-
-  let currentNumber = cephForm.elements['number'].value;
-  currentNumber = parseInt(currentNumber, 10);
-  if(isNaN(currentNumber)) {
-    return;
-  }
-
-  computeResult();
-}
-cephForm.elements['size-replicated'].addEventListener('change', sizeChanged);
-cephForm.elements['size-erasure'].addEventListener('change', sizeChanged);
-cephForm.elements['size-erasure-redundancy'].addEventListener('change', sizeChanged);
-sizeChanged();
+cephForm.elements['size-replicated'].addEventListener('change', computeResult);
+cephForm.elements['size-erasure'].addEventListener('change', computeResult);
+cephForm.elements['size-erasure-redundancy'].addEventListener('change', computeResult);
+computeResult();
