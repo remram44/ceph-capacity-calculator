@@ -50,17 +50,29 @@ function getUsableStorage(nodes, replicas) {
 
 function computeResult() {
   try {
-    // Get nodes as numbers
-    let nodes = cephForm.elements['nodes'].value;
-    nodes = nodes.split(/\s+/);
-    nodes = nodes.filter(e => e.length > 0);
-    nodes = nodes.map(e => {
-      let v = parseInt(e, 10);
-      if(isNaN(v)) {
-        throw new Error('Invalid capacity');
+    // Get input
+    let entries = cephForm.elements['nodes'].value;
+    entries = entries.split(/\s+/);
+    entries = entries.filter(e => e.length > 0);
+
+    // Build list of nodes as numbers
+    let count = 1;
+    let nodes = [];
+    for(let i = 0; i < entries.length; ++i) {
+      let e = entries[i];
+      if(e.length >= 2 && e[e.length - 1] == 'x' && i != entries.length - 1) {
+        count = parseInt(e.substring(0, e.length - 1), 10);
+      } else {
+        let v = parseInt(e, 10);
+        if(isNaN(v)) {
+          throw new Error('Invalid capacity');
+        }
+        for(let c = 0; c < count; ++c) {
+          nodes.push(v);
+        }
+        count = 1;
       }
-      return v;
-    });
+    }
 
     // Compute total raw (= not taking replication into account)
     let totalRaw = nodes.reduce((a, b) => a + b, 0);
