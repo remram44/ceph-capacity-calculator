@@ -31,6 +31,9 @@ function getUsableStorage(nodes, replicas) {
 
     // Increase used storage and decrease capacity
     let amount = nodes[howMany - 1];
+    if(nodes.length > howMany) {
+      amount = nodes[howMany - 1] - nodes[howMany];
+    }
     console.log('Using ', amount, ' from ', howMany, ' nodes');
     storage += amount * howMany;
     for(var i = 0; i < howMany; ++i) {
