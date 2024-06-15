@@ -80,21 +80,15 @@ function computeResult() {
     // Compute total raw (= not taking replication into account)
     let totalRaw = nodes.reduce((a, b) => a + b, 0);
 
+    let size, redundancy;
     if(cephForm.elements['mode'].value === 'replicated') {
       let replicas = parseInt(cephForm.elements['size-replicated'].value, 10);
       if(isNaN(replicas)) {
         throw new Error('Invalid size');
       }
       // replicated 3 -> erasure-coded 1+2
-      let size = 1;
-      let redundancy = replicas - 1;
-
-      let result = getUsableStorage(nodes, replicas);
-      document.getElementById('results').innerHTML = (
-        'Maximum data stored: ' + (result / replicas)
-        + '<br>raw: ' + result
-        + '<br>usage: ' + (100.0 * result / totalRaw) + '%'
-      );
+      size = 1;
+      redundancy = replicas - 1;
     } else {
       size = parseInt(cephForm.elements['size-erasure'].value, 10);
       if(isNaN(size)) {
@@ -104,14 +98,14 @@ function computeResult() {
       if(isNaN(redundancy)) {
         throw new Error('Invalid redundancy');
       }
-
-      let result = getUsableStorage(nodes, size + redundancy);
-      document.getElementById('results').innerHTML = (
-        'Maximum data stored: ' + (result * size / (size + redundancy))
-        + '<br>raw: ' + result
-        + '<br>usage: ' + (100.0 * result / totalRaw) + '%'
-      );
     }
+
+    let result = getUsableStorage(nodes, size + redundancy);
+    document.getElementById('results').innerHTML = (
+      'Maximum data stored: ' + (result * size / (size + redundancy))
+      + '<br>raw: ' + result
+      + '<br>usage: ' + (100.0 * result / totalRaw) + '%'
+    );
   } catch(error) {
     document.getElementById('results').innerText = error.message;
   }
