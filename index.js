@@ -62,6 +62,9 @@ function computeResult() {
       let e = entries[i];
       if(e.length >= 2 && e[e.length - 1] == 'x' && i != entries.length - 1) {
         count = parseInt(e.substring(0, e.length - 1), 10);
+        if(isNaN(count)) {
+          throw new Error('Invalid count');
+        }
       } else {
         let v = parseInt(e, 10);
         if(isNaN(v)) {
