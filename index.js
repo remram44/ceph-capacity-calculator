@@ -1,45 +1,49 @@
 let cephForm = document.getElementById('ceph-form');
 
-function getUsableStorage(nodes, replicas) {
-  console.log('getUsableStorage(', nodes, ', ', replicas, ')');
+function getUsableStorage(sets, replicas) {
+  console.log('getUsableStorage(', sets, ', ', replicas, ')');
 
-  if(nodes.length < replicas) {
+  if(sets.reduce((count, set) => count + set.count, 0) < replicas) {
     console.log('Too few nodes, returning 0');
     return 0;
   }
 
   // Compute total raw (= not taking replication into account)
-  let totalRaw = nodes.reduce((a, b) => a + b, 0);
+  let totalRaw = sets.reduce((total, set) => total + set.count * set.size, 0);
+
+  for(let set of sets) {
+    set.available = set.size;
+  }
 
   // Compute max raw storage used
   let storage = 0;
   for(var iter = 0; true; ++iter) {
-    // Sort nodes by decreasing remaining capacity
-    nodes.sort((a, b) => b - a);
-    console.log('Nodes: ', nodes);
-
-    // No space left
-    if(nodes[replicas - 1] <= 0) {
-      break;
-    }
+    // Sort sets by decreasing individual remaining capacity
+    sets.sort((a, b) => b.available - a.available);
+    console.log('Sets: ', sets);
 
     // Find out how many nodes to use up
-    let howMany = replicas;
-    while(howMany < nodes.length && nodes[howMany - 1] == nodes[howMany]) {
-      howMany++;
+    let howManyNodes = 0;
+    let howManySets = 0
+    while(howManySets < sets.length && (howManyNodes < replicas || sets[howManySets - 1].available == sets[howManySets].available)) {
+      howManyNodes += sets[howManySets].count;
+      howManySets++;
     }
 
     // Increase used storage and decrease capacity
-    let amount = nodes[howMany - 1];
-    if(nodes.length > howMany) {
-      amount = nodes[howMany - 1] - nodes[howMany];
+    let amount = sets[howManySets - 1].available;
+    if(sets.length > howManySets) {
+      amount -= sets[howManySets].available;
     }
-    console.log('Using ', amount, ' from ', howMany, ' nodes');
-    storage += amount * howMany;
-    for(var i = 0; i < howMany; ++i) {
-      nodes[i] -= amount;
+    if(amount <= 0) {
+      break;
     }
-    console.log(nodes);
+    console.log('Using ', amount, ' from ', howManyNodes, ' nodes');
+    storage += amount * howManyNodes;
+    for(var i = 0; i < howManySets; ++i) {
+      sets[i].available -= amount;
+    }
+    console.log(sets);
 
     if(iter === 100) {
       console.error('Infinite loop detected');
@@ -58,9 +62,9 @@ function computeResult() {
     entries = entries.split(/\s+/);
     entries = entries.filter(e => e.length > 0);
 
-    // Build list of nodes as numbers
+    // Build list of sets of sets as {count, size}
     let count = 1;
-    let nodes = [];
+    let sets = [];
     for(let i = 0; i < entries.length; ++i) {
       let e = entries[i];
       if(e.length >= 2 && e[e.length - 1] == 'x' && i != entries.length - 1) {
@@ -69,19 +73,17 @@ function computeResult() {
           throw new Error('Invalid count');
         }
       } else {
-        let v = parseInt(e, 10);
-        if(isNaN(v)) {
+        let size = parseInt(e, 10);
+        if(isNaN(size)) {
           throw new Error('Invalid capacity');
         }
-        for(let c = 0; c < count; ++c) {
-          nodes.push(v);
-        }
+        sets.push({count: count, size: size});
         count = 1;
       }
     }
 
     // Compute total raw (= not taking replication into account)
-    let totalRaw = nodes.reduce((a, b) => a + b, 0);
+    let totalRaw = sets.reduce((total, set) => total + set.count * set.size, 0);
 
     let size, redundancy;
     if(cephForm.elements['mode'].value === 'replicated') {
@@ -103,12 +105,27 @@ function computeResult() {
       }
     }
 
-    let result = getUsableStorage(nodes, size + redundancy);
-    document.getElementById('results').innerHTML = (
+    let result = getUsableStorage(sets, size + redundancy);
+    let summary = (
       'Maximum data stored: ' + (result * size / (size + redundancy))
       + '<br>raw: ' + result
       + '<br>usage: ' + (100.0 * result / totalRaw) + '%'
     );
+    let details = '';
+    if(result > 0) {
+      details = (
+        '<br><br>Maximum node usage:'
+        + '<ul>'
+        + sets.map((set) => (
+          '<li>'
+          + ((set.count !== 1)?set.count + 'x ':'')
+          + (set.size - set.available) + '/' + set.size
+          + '</li>'
+        )).join('')
+        + '</ul>'
+      );
+    }
+    document.getElementById('results').innerHTML = summary + details;
   } catch(error) {
     document.getElementById('results').innerText = error.message;
   }
